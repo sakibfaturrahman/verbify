@@ -1,26 +1,58 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Font Normal: Menggunakan font system yang paling optimal untuk keterbacaan */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.5rem;
+
+  /* Background: Off-white bersih */
+  --background: oklch(0.99 0.002 240);
+  --foreground: oklch(0.2 0.02 240);
+
+  /* Royal Educator Palette */
+  --primary: oklch(0.356 0.15 247.85); /* Deep Blue */
+  --primary-foreground: oklch(0.98 0.01 247.85);
+
+  --secondary: oklch(0.769 0.188 70.08); /* Amber */
+  --secondary-foreground: oklch(0.2 0.02 240);
+
+  --border: oklch(0.92 0.01 240);
+  --input: oklch(0.92 0.01 240);
+  --ring: oklch(0.356 0.15 247.85);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    /* Menggunakan weight normal agar tidak berat */
+    @apply bg-background text-foreground font-sans font-normal antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    /* Menghindari font-black, cukup font-semibold untuk penekanan yang pas */
+    @apply font-semibold tracking-tight text-primary;
+  }
 }
