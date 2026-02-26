@@ -1,9 +1,10 @@
-import Hero from "@/components/Hero";
-import Stats from "@/components/Stats";
-import LearningPath from "@/components/LearningPath";
-import Testimonials from "@/components/Testimonials";
-import Features from "@/components/Features";
-import Faq from "@/components/Faq";
+import Hero from "@/components/home/Hero";
+import Stats from "@/components/common/Stats";
+import LearningPath from "@/components/home/LearningPath";
+import Testimonials from "@/components/home/Testimonials";
+import Features from "@/components/home/Features";
+import CtaSection from "@/components/common/CtaSection";
+import Faq from "@/components/common/Faq";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <LearningPath />
       <Testimonials />
       <Features />
+      <CtaSection />
       <Faq />
     </main>
   );

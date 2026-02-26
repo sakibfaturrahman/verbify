@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
@@ -42,10 +42,6 @@ const faqCategories = {
       q: "Is there a refund policy?",
       a: "Yes, we offer a 7-day money-back guarantee if you are not satisfied.",
     },
-    {
-      q: "Can I pay in installments?",
-      a: "Installment plans are available for our premium long-term courses.",
-    },
   ],
   "Technical Support": [
     {
@@ -61,21 +57,37 @@ const faqCategories = {
 
 export default function Faq() {
   const [activeCat, setActiveCat] = useState("Course Information");
+  const [showHeaderNav, setShowHeaderNav] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // Tinggi Navbar Utama Anda agar tidak tertutup
+  const NAVBAR_HEIGHT = "64px";
+
+  // 1. Munculkan Header Nav saat melewati Hero (Logic identik CourseList)
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 400) setShowHeaderNav(true);
+    else setShowHeaderNav(false);
+  });
+
+  // 2. Intersection Observer untuk Active Sidebar & Header Tab
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveCat(entry.target.id);
+          if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+            setActiveCat(entry.target.id);
+          }
         });
       },
-      { threshold: 0.5, rootMargin: "-20% 0px -60% 0px" },
+      {
+        rootMargin: "-20% 0px -60% 0px",
+        threshold: [0.1, 0.3],
+      },
     );
 
-    Object.keys(faqCategories).forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    const sections = document.querySelectorAll(".faq-section");
+    sections.forEach((section) => observer.observe(section));
 
     return () => observer.disconnect();
   }, []);
@@ -83,14 +95,20 @@ export default function Faq() {
   const scrollToCat = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      window.scrollTo({ top: el.offsetTop - 120, behavior: "smooth" });
+      const offset = 140; // Menyesuaikan tinggi header sticky ganda
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = el.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
 
   return (
-    <section className="bg-white min-h-screen">
-      {/* 1. Hero Section FAQ sesuai referensi */}
-      <div className="pt-32 pb-20 container mx-auto px-6 max-w-6xl grid md:grid-cols-2 items-center gap-12 border-b border-gray-100">
+    <div ref={containerRef} className="relative bg-white font-sans">
+      {/* 1. HERO SECTION */}
+      <section className="pt-32 pb-20 container mx-auto px-6 max-w-6xl grid md:grid-cols-2 items-center gap-12 border-b border-gray-100">
         <div>
           <span className="inline-block px-3 py-1 rounded-md bg-[#EEF2FF] text-[#4F46E5] text-[11px] font-bold uppercase tracking-wider mb-6 font-montserrat">
             FAQ
@@ -98,8 +116,8 @@ export default function Faq() {
           <h1 className="text-5xl md:text-[84px] font-extrabold text-black font-montserrat tracking-tight leading-[1.05] mb-8">
             Clarifying <br /> Your Doubts
           </h1>
-          <p className="text-xl text-gray-500 font-medium font-sans">
-            Find clear answers to all your questions.
+          <p className="text-xl text-gray-500 font-medium max-w-sm leading-relaxed">
+            Find clear answers to all your questions about Verbify.
           </p>
         </div>
         <div className="flex justify-center md:justify-end">
@@ -109,24 +127,33 @@ export default function Faq() {
             width={400}
             height={400}
             className="w-full h-auto max-w-[350px]"
+            priority
           />
         </div>
-      </div>
+      </section>
 
-      {/* 2. Sticky Sub-Nav Categories */}
-      <div className="sticky top-0 bg-white/90 backdrop-blur-md z-30 border-b border-gray-100 py-4">
-        <div className="container mx-auto px-6 max-w-7xl flex items-center justify-between overflow-x-auto no-scrollbar">
-          <span className="text-xs font-bold text-gray-400 font-montserrat whitespace-nowrap mr-8">
-            Categories:
+      {/* 2. STICKY HEADER CATEGORIES (Muncul saat scroll, di bawah Navbar Utama) */}
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{
+          y: showHeaderNav ? 0 : -100,
+          opacity: showHeaderNav ? 1 : 0,
+        }}
+        style={{ top: showHeaderNav ? NAVBAR_HEIGHT : "0px" }}
+        className="fixed left-0 w-full bg-white/95 backdrop-blur-sm z-[40] border-b border-gray-100 py-4 shadow-sm"
+      >
+        <div className="container mx-auto px-6 max-w-7xl flex justify-between items-center">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-montserrat hidden sm:inline">
+            FAQ Categories
           </span>
-          <div className="flex gap-8">
+          <div className="flex gap-8 overflow-x-auto no-scrollbar mx-auto sm:mx-0">
             {Object.keys(faqCategories).map((cat) => (
               <button
                 key={cat}
                 onClick={() => scrollToCat(cat)}
-                className={`text-[13px] font-bold whitespace-nowrap transition-all ${
+                className={`text-[13px] font-bold whitespace-nowrap transition-all duration-300 ${
                   activeCat === cat
-                    ? "text-[#4F46E5]"
+                    ? "text-[#4F46E5] scale-105"
                     : "text-gray-400 hover:text-black"
                 }`}
               >
@@ -135,38 +162,61 @@ export default function Faq() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* 3. FAQ Content Sections */}
-      <div className="container mx-auto px-6 max-w-6xl py-24 space-y-32">
-        {Object.entries(faqCategories).map(([category, items]) => (
-          <section
-            id={category}
-            key={category}
-            className="grid md:grid-cols-[1fr_2fr] gap-12 scroll-mt-32"
-          >
-            <h2 className="text-3xl md:text-5xl font-extrabold font-montserrat text-black tracking-tighter leading-tight">
-              {category}
-            </h2>
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              {items.map((item, i) => (
-                <AccordionItem
-                  key={i}
-                  value={`${category}-${i}`}
-                  className="border-none bg-[#F5F7FF]/50 rounded-2xl px-6 py-1 transition-all hover:bg-[#F5F7FF]"
+      <div className="container mx-auto px-6 max-w-7xl relative">
+        <div className="flex flex-col md:flex-row gap-12">
+          {/* 3. STICKY SIDEBAR (Kiri) */}
+          <aside className="md:w-1/4 h-fit sticky top-48 pt-10 hidden md:block">
+            <motion.div
+              key={activeCat}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col space-y-4"
+            >
+              <h2 className="text-4xl font-extrabold font-montserrat text-black tracking-tight leading-none">
+                {activeCat}
+              </h2>
+              <p className="text-gray-500 font-medium leading-relaxed max-w-[200px]">
+                Everything you need to know about {activeCat.toLowerCase()}.
+              </p>
+            </motion.div>
+          </aside>
+
+          {/* 4. FAQ CONTENT (Kanan) */}
+          <div className="md:w-3/4 space-y-32 pt-10 pb-32">
+            {Object.entries(faqCategories).map(([category, items]) => (
+              <section
+                id={category}
+                key={category}
+                className="faq-section scroll-mt-48"
+              >
+                <Accordion
+                  type="single"
+                  collapsible
+                  className="w-full space-y-4"
                 >
-                  <AccordionTrigger className="hover:no-underline font-sans font-bold text-gray-800 text-left py-4">
-                    {item.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="font-sans text-gray-500 leading-relaxed pb-4">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </section>
-        ))}
+                  {items.map((item, i) => (
+                    <AccordionItem
+                      key={i}
+                      value={`${category}-${i}`}
+                      className="border-none bg-[#F5F7FF]/50 rounded-2xl px-8 py-2 transition-all hover:bg-[#F5F7FF] group"
+                    >
+                      <AccordionTrigger className="hover:no-underline font-sans font-bold text-gray-800 text-left text-lg py-5">
+                        {item.q}
+                      </AccordionTrigger>
+                      <AccordionContent className="font-sans text-gray-500 text-base leading-relaxed pb-6">
+                        {item.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </section>
+            ))}
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
