@@ -63,7 +63,7 @@ export default function Faq() {
             Ask & Learn
           </span>
           <h2 className="text-4xl md:text-6xl font-extrabold text-black font-montserrat tracking-tight leading-tight">
-            Need Help? <br /> Start Here First
+            Need Help? <br /> Start Here First!
           </h2>
         </div>
 

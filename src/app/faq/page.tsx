@@ -132,7 +132,6 @@ export default function Faq() {
         </div>
       </section>
 
-      {/* 2. STICKY HEADER CATEGORIES (Muncul saat scroll, di bawah Navbar Utama) */}
       <motion.div
         initial={{ y: -100, opacity: 0 }}
         animate={{
